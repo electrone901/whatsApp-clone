@@ -4,9 +4,22 @@ import ChatIcon from '@material-ui/icons/Chat'
 import MoreVertIcon from '@material-ui/icons/MoreVert'
 import SearchIncon from '@material-ui/icons/Search'
 import * as EmailValidator from 'email-validator'
-import { auth } from '../firebase'
+import { useAuthState } from 'react-firebase-hooks/auth'
+import { useCollection } from 'react-firebase-hooks/firestore'
+import { auth, db } from '../firebase'
+import Chat from './Chat'
+
 
 function Sidebar() {
+  const [user] = useAuthState(auth)
+  // gets access to chats
+  const userChatRef = db
+    .collection('chats')
+    .where('users', 'array-contains', user.email)
+
+  // gives  the actual data
+  const [chatsSnapshot] = useCollection(userChatRef)
+
   const createChat = () => {
     const input = prompt(
       'lease enter an email address for the user you wish to chat with',
@@ -14,13 +27,27 @@ function Sidebar() {
 
     if (!input) return null
 
-    // email validator
-    if (EmailValidator.validate(input)) {
-      // we need to add  the chat into the DB 'chats' collection
+    // email validator: chat doesn't exist & prevent chatUser to star a chat with itself
+    if (
+      EmailValidator.validate(input) &&
+      !chatAlreadyExists(input) &&
+      input !== user.email
+    ) {
+      // add chat users to firebase
+      db.collection('chats').add({
+        users: [user.email, input],
+      })
     }
 
     // react firebase hooks
   }
+
+  const chatAlreadyExists = (recipientEmail) =>
+    // I need to get the collection of chats and see if that chat exist
+    !!chatsSnapshot?.docs.find(
+      (chat) =>
+        chat.data().users.find((user) => user === recipientEmail)?.length > 0,
+    )
 
   return (
     <Container>
@@ -46,6 +73,11 @@ function Sidebar() {
       </Search>
 
       <SidebarButton onClick={createChat}>Start a new chat</SidebarButton>
+
+      {/* List of chats */}
+      {chatsSnapshot?.docs.map((chat) => (
+        <Chat key={chat.id} id={chat.id} user={chat.data().users} />
+      ))}
     </Container>
   )
 }
