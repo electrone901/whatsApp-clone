@@ -1,36 +1,38 @@
 import { Avatar, IconButton, Button } from '@material-ui/core'
-import MoreVertIcon from '@material-ui/icons/MoreVert'
-import * as EmailValidator from "email-validator"
-import Chat from '@material-ui/icons/Chat'
-import SearchIncon from '@material-ui/icons/Search'
 import styled from 'styled-components'
+import ChatIcon from '@material-ui/icons/Chat'
+import MoreVertIcon from '@material-ui/icons/MoreVert'
+import SearchIncon from '@material-ui/icons/Search'
+import * as EmailValidator from 'email-validator'
+import { auth } from '../firebase'
 
 function Sidebar() {
-
   const createChat = () => {
-    const input = prompt("lease enter an email address for the user you wish to chat with")
+    const input = prompt(
+      'lease enter an email address for the user you wish to chat with',
+    )
 
-    if(!input) return null;
+    if (!input) return null
 
     // email validator
-    if(EmailValidator.validate(input)) {
+    if (EmailValidator.validate(input)) {
       // we need to add  the chat into the DB 'chats' collection
     }
 
     // react firebase hooks
-
   }
-
-
-
 
   return (
     <Container>
       <Header>
-        <UserAvatar />
+        <UserAvatar
+          onClick={() => {
+            auth.signOut()
+          }}
+        />
         <IconsContainer>
           <IconButton>
-            <Chat />
+            <ChatIcon />
           </IconButton>
           <IconButton>
             <MoreVertIcon />
@@ -43,7 +45,7 @@ function Sidebar() {
         <SearchInput placeholder="Search in chats" />
       </Search>
 
-      <SidebarButton onClick={createChat} >Start a new chat</SidebarButton>
+      <SidebarButton onClick={createChat}>Start a new chat</SidebarButton>
     </Container>
   )
 }
